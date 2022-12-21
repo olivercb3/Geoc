@@ -265,9 +265,9 @@ function initTriangle(points) {
 //Lab 5 code
 //el primer dels tres triangles a analitzar sera el seguent, a partir d'aquest farem el circumcercle i mirarem si el punt insertat cau dins.
 //només cal una comprobacio, degut a que mai ens trobarem rondant el triangle per fora, de manera que incident_face de la cara oposada mai podra ser 0
-function is_delunay(triangle_delunay, point_delunay) {
+function is_delunay(triangle_delunay, point_delunay, limit) {
 	let auxiliar = triangles[triangle_delunay].edge;
-	console.log("I'm edge" + auxiliar);
+	//console.log("I'm edge" + auxiliar);
 	//console.log(auxiliar);
 	let valor;
 	if (auxiliar%2 == 0) valor = 1
@@ -284,7 +284,7 @@ function is_delunay(triangle_delunay, point_delunay) {
 		let circumcenter = findCircumCenter(p1, p2, p3);
 		let radius = getDistance(circumcenter[0], circumcenter[1], p1[0], p1[1]);
 		if (check_a_point(point_delunay.x, point_delunay.y, circumcenter[0], circumcenter[1], radius) == true) {
-			console.log("inside");
+			//console.log("inside");
 			//posem els dos triangles anteriors a false
 			let edge_cara_oposada;
 			if (triangles[triangle_delunay].edge%2 == 0) edge_cara_oposada = triangles[triangle_delunay].edge + 1;
@@ -301,10 +301,10 @@ function is_delunay(triangle_delunay, point_delunay) {
 			//primer crear nou edge
 			var edge_aux = new Edge(edges[edges[edge_cara_oposada].edgePrev].origin, triangles.length -2, edges[triangles[triangle_delunay].edge].edgePrev, edges[edge_cara_oposada].edgeNext); //el 1 i el 2 encara son incorrectes
 			edges.push(edge_aux);
-			console.log(1 + " " + vertices[edges[edges[triangles[triangle_delunay].edge].edgePrev].origin].coordX);
+			//console.log(1 + " " + vertices[edges[edges[triangles[triangle_delunay].edge].edgePrev].origin].coordX);
 			edge_aux = new Edge(edges[edges[triangles[triangle_delunay].edge].edgePrev].origin, triangles.length -1, edges[edge_cara_oposada].edgePrev, edges[triangles[triangle_delunay].edge].edgeNext); //el 1 i el 2 encara son incorrectes
 			edges.push(edge_aux);
-			console.log(2 + " " + vertices[edges[edges[edge_cara_oposada].edgePrev].origin].coordX);
+			//console.log(2 + " " + vertices[edges[edges[edge_cara_oposada].edgePrev].origin].coordX);
 			
 
 			//canviar el next i el prev dels edges que formen part (haurien de ser 4)
@@ -325,51 +325,34 @@ function is_delunay(triangle_delunay, point_delunay) {
 			edges[edges[edge_cara_oposada].edgeNext].incident_face = triangles.length -2;
 
 
-			//cridar, en cas que es donin certs escenaris, a la funció de forma recursiva per a que es segueixi complint la condicio delunay
-			if(edges[edges.length-1].edgeNext % 2 == 0) {
-				if (edges[edges[edges.length-1].edgeNext + 1].incident_face != 0) {
-					is_delunay(edges[edges.length-1].incident_face, [vertices[edges[edges[edges[edges.length-1].edgeNext + 1].edgePrev].origin].coordX, vertices[edges[edges[edges[edges.length-1].edgeNext + 1].edgePrev].origin].coordY])
+			var pnt;
+			if(limit < 2) {
+				if(edges[edges.length-1].edgeNext % 2 == 0) {
+					if (edges[edges[edges.length-1].edgeNext+1].incident_face != 0) {
+						pnt = {'x':vertices[edges[edges[edges[edges.length-1].edgeNext+1].edgePrev].origin].coordX, 'y':vertices[edges[edges[edges[edges.length-1].edgeNext+1].edgePrev].origin].coordY};
+						is_delunay(triangles.length-1,pnt, limit+1);
+					}
 				}
-			}
-			else {
-				if (edges[edges[edges.length-1].edgeNext - 1].incident_face != 0) {
-					is_delunay(edges[edges.length-1].incident_face, [vertices[edges[edges[edges[edges.length-1].edgeNext - 1].edgePrev].origin].coordX, vertices[edges[edges[edges[edges.length-1].edgeNext - 1].edgePrev].origin].coordY])
+				else {
+					if (edges[edges[edges.length-1].edgeNext-1].incident_face != 0) {
+						pnt = {'x':vertices[edges[edges[edges[edges.length-1].edgeNext-1].edgePrev].origin].coordX, 'y':vertices[edges[edges[edges[edges.length-1].edgeNext-1].edgePrev].origin].coordY};
+						is_delunay(triangles.length-1,pnt,limit+1);
+					}
 				}
-			}
 
-			if(edges[edges.length-1].edgePrev % 2 == 0) {
-				if (edges[edges[edges.length-1].edgePrev + 1].incident_face != 0) {
-					is_delunay(edges[edges.length-1].incident_face, [vertices[edges[edges[edges[edges.length-1].edgePrev + 1].edgePrev].origin].coordX, vertices[edges[edges[edges[edges.length-1].edgePrev + 1].edgePrev].origin].coordY])
+				if(edges[edges.length-2].edgePrev % 2 == 0) {
+					if (edges[edges[edges.length-2].edgePrev+1].incident_face != 0){
+						pnt = {'x':vertices[edges[edges[edges[edges.length-2].edgePrev+1].edgePrev].origin].coordX, 'y':vertices[edges[edges[edges[edges.length-2].edgePrev+1].edgePrev].origin].coordY};
+						is_delunay(triangles.length-2,pnt, limit+1);
+					}
+				}
+				else {
+					if (edges[edges[edges.length-2].edgePrev-1].incident_face != 0) {
+						pnt = {'x':vertices[edges[edges[edges[edges.length-2].edgePrev-1].edgePrev].origin].coordX, 'y':vertices[edges[edges[edges[edges.length-2].edgePrev-1].edgePrev].origin].coordY}
+						is_delunay(triangles.length-2,pnt,limit+1);
+					}
 				}
 			}
-			else {
-				if (edges[edges[edges.length-1].edgePrev - 1].incident_face != 0) {
-					is_delunay(edges[edges.length-1].incident_face, [vertices[edges[edges[edges[edges.length-1].edgePrev - 1].edgePrev].origin].coordX, vertices[edges[edges[edges[edges.length-1].edgePrev - 1].edgePrev].origin].coordY])
-				}
-			}
-
-			if(edges[edges.length-2].edgeNext % 2 == 0) {
-				if (edges[edges[edges.length-2].edgeNext + 1].incident_face != 0) {
-					is_delunay(edges[edges.length-2].incident_face, [vertices[edges[edges[edges[edges.length-2].edgeNext + 1].edgePrev].origin].coordX, vertices[edges[edges[edges[edges.length-2].edgeNext + 1].edgePrev].origin].coordY])
-				}
-			}
-			else {
-				if (edges[edges[edges.length-2].edgeNext - 1].incident_face != 0) {
-					is_delunay(edges[edges.length-2].incident_face, [vertices[edges[edges[edges[edges.length-2].edgeNext - 1].edgePrev].origin].coordX, vertices[edges[edges[edges[edges.length-2].edgeNext - 1].edgePrev].origin].coordY])
-				}
-			}
-
-			if(edges[edges.length-2].edgePrev % 2 == 0) {
-				if (edges[edges[edges.length-2].edgePrev + 1].incident_face != 0) {
-					is_delunay(edges[edges.length-2].incident_face, [vertices[edges[edges[edges[edges.length-2].edgePrev + 1].edgePrev].origin].coordX, vertices[edges[edges[edges[edges.length-2].edgePrev + 1].edgePrev].origin].coordY])
-				}
-			}
-			else {
-				if (edges[edges[edges.length-2].edgePrev - 1].incident_face != 0) {
-					is_delunay(edges[edges.length-2].incident_face, [vertices[edges[edges[edges[edges.length-2].edgePrev - 1].edgePrev].origin].coordX, vertices[edges[edges[edges[edges.length-2].edgePrev - 1].edgePrev].origin].coordY])
-				}
-			}
-			//console.log("faig canvis");
 		}
 	}
 }
@@ -595,7 +578,7 @@ function computeTriangulation(points) {
 
 		let p_t = triangles.length-1;
 		for (let u = 0; u < 3; ++u) {
-			is_delunay(p_t, actual_point);
+			is_delunay(p_t, actual_point, 0);
 			--p_t;
 		}
 		p_triangle = triangles.length - 1;
@@ -612,7 +595,7 @@ function computeTriangulation(points) {
 			triangles_final.push(v);
 		}
 	}
-	console.log("finalisima")
+	console.log("finalisima");
 	return triangles_final;
 }
 
